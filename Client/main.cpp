@@ -1,3 +1,5 @@
+
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -15,6 +17,7 @@
 #include <string>
 
 using namespace std;
+
 
 int main()
 {
@@ -47,17 +50,6 @@ int main()
 
 
     do {
-        //		Enter lines of text
-        cout << "> ";
-        getline(cin, userInput);
-
-        //		Send to server
-        int sendRes = send(sock, userInput.c_str(), userInput.size() + 1, 0);
-        if (sendRes == -1)
-        {
-            cout << "Could not send to server! Whoops!\r\n";
-            continue;
-        }
 
         //		Wait for response
         memset(buf, 0, 4096);
@@ -71,6 +63,20 @@ int main()
             //		Display response
             cout << "SERVER> " << string(buf, bytesReceived) << "\r\n";
         }
+        memset(buf, 0, 4096);
+
+        //		Enter lines of text
+        cout << "> ";
+        getline(cin, userInput);
+
+        //		Send to server
+        int sendRes = send(sock, userInput.c_str(), userInput.size() + 1, 0);
+        if (sendRes == -1)
+        {
+            cout << "Could not send to server! Whoops!\r\n";
+            continue;
+        }
+
     } while(true);
 
     //	Close the socket
