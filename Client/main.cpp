@@ -49,7 +49,12 @@ int main()
     string userInput;
 
 
-    do {
+        char *mensajeCliente = "Hola";
+        int sendRes = send(sock, mensajeCliente, sizeof(mensajeCliente) + 1, 0);
+        if (sendRes == -1)
+        {
+            cout << "Could not send to server! Whoops!\r\n";
+        }
 
         //		Wait for response
         memset(buf, 0, 4096);
@@ -62,25 +67,9 @@ int main()
         {
             //		Display response
             cout << "SERVER> " << string(buf, bytesReceived) << "\r\n";
+            close(sock);
         }
-        memset(buf, 0, 4096);
-
-        //		Enter lines of text
-        cout << "> ";
-        getline(cin, userInput);
-
-        //		Send to server
-        int sendRes = send(sock, userInput.c_str(), userInput.size() + 1, 0);
-        if (sendRes == -1)
-        {
-            cout << "Could not send to server! Whoops!\r\n";
-            continue;
-        }
-
-    } while(true);
-
     //	Close the socket
-    close(sock);
 
     return 0;
 }
