@@ -16,7 +16,7 @@ using namespace std;
 int main(int argc , char *argv[])
 {
     int opt = TRUE;
-    int master_socke, largoDireccion, nuevoSocket, socketCliente[4],
+    int master_socket, largoDireccion, nuevoSocket, socketCliente[4],
             numMaxClientes = 4 , actividad, i , valorLeido , sd;
     int max_sd;
     struct sockaddr_in direccionServidor;
@@ -28,7 +28,7 @@ int main(int argc , char *argv[])
     fd_set readfds;
 
     //mensaje inicial
-    char *mensaje = "Hola cliente \r\n";
+    //char *mensaje = "Hola cliente \r\n";
 
     //se inicializan todos los sockets como un 0
     for (i = 0; i < numMaxClientes; i++)
@@ -37,14 +37,14 @@ int main(int argc , char *argv[])
     }
 
     //Crear un socket general
-    if ((master_socke = socket(AF_INET, SOCK_STREAM, 0)) == 0)
+    if ((master_socket = socket(AF_INET, SOCK_STREAM, 0)) == 0)
     {
         perror("EL socket falló");
         exit(EXIT_FAILURE);
     }
 
     //se hace un set del socket master para que reciba todas las conexiones
-    if (setsockopt(master_socke, SOL_SOCKET, SO_REUSEADDR, (char *) &opt,
+    if (setsockopt(master_socket, SOL_SOCKET, SO_REUSEADDR, (char *) &opt,
                    sizeof(opt)) < 0 )
     {
         perror("setsockopt");
@@ -59,7 +59,7 @@ int main(int argc , char *argv[])
     cout<<direccionServidor.sin_addr.s_addr<<endl;
 
     //COnecta el socket al puerto general 6969
-    if (bind(master_socke, (struct sockaddr *) &direccionServidor, sizeof(direccionServidor)) < 0)
+    if (bind(master_socket, (struct sockaddr *) &direccionServidor, sizeof(direccionServidor)) < 0)
     {
         perror("Error al hacer el bind del socket");
         exit(EXIT_FAILURE);
@@ -67,7 +67,7 @@ int main(int argc , char *argv[])
     printf("Recibiendo en el puerto  %d \n", PUERTO);
 
     //especificar el maximo de conexiones al socket
-    if (listen(master_socke, 3) < 0)
+    if (listen(master_socket, 3) < 0)
     {
         perror("escuchando");
         exit(EXIT_FAILURE);
@@ -83,8 +83,8 @@ int main(int argc , char *argv[])
         FD_ZERO(&readfds);
 
         //agrega el socket master al set
-        FD_SET(master_socke, &readfds);
-        max_sd = master_socke;
+        FD_SET(master_socket, &readfds);
+        max_sd = master_socket;
 
         //Agrega los socket CLIENTE al set
         for ( i = 0 ; i < numMaxClientes ; i++)
@@ -112,10 +112,10 @@ int main(int argc , char *argv[])
 
         //Si algo pasa en el master socket
         //quiere decir que esta recibiendo una conexion
-        if (FD_ISSET(master_socke, &readfds))
+        if (FD_ISSET(master_socket, &readfds))
         {
-            if ((nuevoSocket = accept(master_socke,
-                                      (struct sockaddr *)&direccionServidor, (socklen_t*)&largoDireccion)) < 0)
+            if ((nuevoSocket = accept(master_socket,
+                                      (struct sockaddr *) &direccionServidor, (socklen_t *) &largoDireccion)) < 0)
             {
                 perror("Aceptar");
                 exit(EXIT_FAILURE);
@@ -127,13 +127,13 @@ int main(int argc , char *argv[])
             cout<<inet_ntoa(direccionServidor.sin_addr)<<endl;
 
             //enviar a la nueva conexion un mensaje
-            if( send(nuevoSocket, mensaje, strlen(mensaje), 0) != strlen(mensaje) )
-            {
-                perror("enviar");
-            }
+            /** if( send(nuevoSocket, mensaje, strlen(mensaje), 0) != strlen(mensaje) )
+             {
+                 perror("enviar");
+             }
 
 
-            puts("Hola");
+             puts("Hola");***/
 
             //agregar el socket que se acepto a la lista de sockets
             for (i = 0; i < numMaxClientes; i++)
@@ -160,7 +160,7 @@ int main(int argc , char *argv[])
             {
                 //  Revisar si se cerrò el socket
                 //recibir mensaje
-                if ((valorLeido = recv(sd, buffer, 4096, 0)) == 0)
+                if ((valorLeido = read(sd, buffer, 4096)) == 0)
                 {
                     //SI ALGUIEN SE DESCONECTA
                     getpeername(sd , (struct sockaddr*)&direccionServidor , \
@@ -176,28 +176,39 @@ int main(int argc , char *argv[])
                     //Devolver el mensaje que se recibio
                 else
                 {
-                    buffer[valorLeido] = '\0';
-                    printf("Me llegó %s", (buffer, valorLeido));
+
                     int ID_cliente= i; //indica el cliente actual
                     const void* cvp =&i;
+                    buffer[valorLeido] = '\0';
+                    buffer[valorLeido] = '\0';
+
+                    printf("Recibí un mensaje \n");
 
 
-                    char *mensaje2 = "Usted es el cliente que envio el mensaje: ";
+                    char *mensaje2 = "Mensaje recibido";
                     //enviar a la nueva conexion un mensaje
-                    if( send(sd, mensaje2, strlen(mensaje2), 0) != strlen(mensaje2) )
+                    /***if( send(sd, mensaje2, strlen(mensaje2), 0) != strlen(mensaje2) )
                     {
                         perror("enviar");
-                    }
+                    }***/
 
+                    /***le reenvia al cliente el mensaje
                     send(sd,cvp,strlen(buffer),0);
+                    ***/
 
-
-                    //le envía a todos los clientes el mensaje enviado por el cliente i
+                    /***e envía a todos los clientes el mensaje enviado por el cliente i
                     for(int i=0; i<2; i++){
                         sd = socketCliente[i]; //obtiene el socket de las lista de sockets de clientes
-                        send(sd,buffer,strlen(buffer),10000); //envia el mensaje
+                        send(sd,buffer,strlen(buffer),4096); //envia el mensaje
 
+                    }***/
+
+                    for (int i = 0; i < 2000; i++) {
+                        cout << i << endl;
                     }
+
+                    send(sd, mensaje2, strlen(mensaje2), 0);
+
                 }
             }
         }
